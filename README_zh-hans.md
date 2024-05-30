@@ -1,42 +1,41 @@
 # tiktoken-go
-[简体中文](./README_zh-hans.md)
+Go 语言版本的 OpenAI 的 tiktoken。  
+帮你把文本转换成 OpenAI 的模型可以识别的 token。  
+tiktoken的原项目地址[tiktoken](https://github.com/openai/tiktoken).  
 
-OpenAI's tiktoken in Go. 
+# 用法
 
-Tiktoken is a fast BPE tokeniser for use with OpenAI's models.
-
-This is a port of the original [tiktoken](https://github.com/openai/tiktoken).  
-
-# Usage
-## Install
+## 安装
 
 ```bash
 go get github.com/pkoukk/tiktoken-go
 ```
-## Cache
-Tiktoken-go has the same cache mechanism as the original Tiktoken library.  
+## 缓存
+Tiktoken-go 和原始的 Tiktoken 库一样，具有相同的缓存机制。  
 
-You can set the cache directory by using the environment variable TIKTOKEN_CACHE_DIR.   
+您可以使用环境变量 TIKTOKEN_CACHE_DIR 来设置缓存目录。  
 
-Once this variable is set, tiktoken-go will use this directory to cache the token dictionary.   
+一旦设置了该变量，tiktoken-go 将使用该目录来缓存令牌字典。  
 
-If you don't set this environment variable, tiktoken-go will download the dictionary each time you initialize an encoding for the first time.  
+如果您未设置此环境变量，则 tiktoken-go 将在每次首次初始化编码时下载字典。  
 
-## Alternative BPE loaders
-If you don't want to use cache or download the dictionary each time, you can use alternative BPE loader.
 
-Just call `tiktoken.SetBpeLoader` before calling `tiktoken.GetEncoding` or `tiktoken.EncodingForModel`.
+## 替代 BPE 加载器
+默认情况下，tiktoken-go 会在运行时下载字典，如果您不想使用缓存或每次下载字典，您可以使用替代 BPE 加载器。
 
-`BpeLoader` is an interface, you can implement your own BPE loader by implementing this interface.
+只需在调用 `tiktoken.GetEncoding` 或 `tiktoken.EncodingForModel` 之前调用 `tiktoken.SetBpeLoader`。
 
-### Offline BPE loader
-The offline BPE loader loads the BPE dictionary from embed files, it helps if you don't want to download the dictionary at runtime.  
+`BpeLoader` 是一个接口，您可以通过实现此接口来实现自己的 BPE 加载器。
 
-Due to the size of the BPE dictionary, this loader is in other project.
+### 离线 BPE 加载器
+离线 BPE 加载器从嵌入文件加载 BPE 字典。
 
-Include if you require this loader: [tiktoken_loader](https://github.com/pkoukk/tiktoken-go-loader)
+由于 BPE 字典的文件较大，不适合包含在本项目中，故此加载器在其他项目中。
 
-## Examples
+如果需要使用，请引用：[tiktoken_loader](https://github.com/pkoukk/tiktoken-go-loader)
+
+## 例子
+
 ### Get Token By Encoding
 
 ```go
@@ -51,7 +50,7 @@ func main()  {
 	text := "Hello, world!"
 	encoding := "cl100k_base"
 
-	// if you don't want download dictionary at runtime, you can use offline loader
+	// 如果你不想在运行时下载字典，你可以使用离线加载器
 	// tiktoken.SetBpeLoader(tiktoken_loader.NewOfflineLoader())
 	tke, err := tiktoken.GetEncoding(encoding)
 	if err != nil {
@@ -69,7 +68,7 @@ func main()  {
 }
 ```
 
-### Get Token By Model
+### get token by Model
 
 ```go
 package main
@@ -99,17 +98,14 @@ func main()  {
 }
 ```
 
-### Counting Tokens For Chat API Calls
-Below is an example function for counting tokens for messages passed to gpt-3.5-turbo or gpt-4.
+### 计算chat API消息当中的token消耗
+这段代码根据[官方示例](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)编写
 
-The following code was written based on [openai-cookbook](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)  examples at `Wednesday, 28 June 2023`.
+编写时间： `2023-06-28`
 
-Please note that the token calculation method for the message may change at any time, so this code may not necessarily be applicable in the future.
+请注意，消息的token计算方式可能随时会发生改变，以下代码并不一定在将来适用，如果您需要精确的计算，请关注官方文档。
 
-If you need accurate calculation, please refer to the official documentation.
-
-If you find that this code is no longer applicable, please feel free to submit a PR or Issue.
-
+如果您发现这段代码不再适用，欢迎您提PR或Issue。
 
 ```go
 package main
@@ -121,7 +117,6 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-// OpenAI Cookbook: https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string) (numTokens int) {
 	tkm, err := tiktoken.EncodingForModel(model)
 	if err != nil {
@@ -169,11 +164,9 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 	numTokens += 3 // every reply is primed with <|start|>assistant<|message|>
 	return numTokens
 }
-
 ```
 
-
-# Available Encodings
+# available encodings
  | Encoding name           | OpenAI models                                        |
  | ----------------------- | ---------------------------------------------------- |
  | `cl100k_base`           | `gpt-4`, `gpt-3.5-turbo`, `text-embedding-ada-002`   |
@@ -181,14 +174,13 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
  | `r50k_base` (or `gpt2`) | GPT-3 models like `davinci`                          |
 
 
-
-# Available Models
+# available models
 | Model name                   | OpenAI models |
 | ---------------------------- | ------------- |
-| gpt-4-*                      | cl100k_base   |
-| gpt-3.5-turbo-*              | cl100k_base   |
 | gpt-4                        | cl100k_base   |
+| gpt-4-*                      | cl100k_base   |
 | gpt-3.5-turbo                | cl100k_base   |
+| gpt-3.5-turbo-*              | cl100k_base   |
 | text-davinci-003             | p50k_base     |
 | text-davinci-002             | p50k_base     |
 | text-davinci-001             | r50k_base     |
@@ -220,23 +212,16 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 | code-search-ada-code-001     | r50k_base     |
 | gpt2                         | gpt2          |
 
-
-
-# Test
-> you can run test in [test](./test) folder
-
-## compare with original [tiktoken](https://github.com/openai/tiktoken)
+# 与官方 [tiktoken](https://github.com/openai/tiktoken) 的对比
 
 ## get token by encoding
-[result](./doc/test_result.md#encoding-test-result)
+[测试结果](./doc/test_result.md#encoding-test-result)
 
 ## get token by model  
-[result](./doc/test_result.md#model-test-result)
-
-
+[测试结果](./doc/test_result.md#model-test-result)
 
 # Benchmark
-> you can run benchmark in [test](./test) folder
+> 你可以使用 [test](./test) 目录下的文件执行基准测试。 
 
 ## Benchmark result
 | name        | time/op | os         | cpu      | text                             | times  |
@@ -244,13 +229,11 @@ func NumTokensFromMessages(messages []openai.ChatCompletionMessage, model string
 | tiktoken-go | 8795ns  | macOS 13.2 | Apple M1 | [UDHR](https://unicode.org/udhr) | 100000 |
 | tiktoken    | 8838ns  | macOS 13.2 | Apple M1 | [UDHR](https://unicode.org/udhr) | 100000 |
 
-It looks like the performance is almost the same.   
+看上去tiktoken-go的性能基本与原tiktoken一致。  
 
-Maybe the difference is due to the difference in the performance of the machine.
+也许在不同的机器上的测试结果会有所不同。也可能是我的测试方法并不恰当。
 
-Or maybe my benchmark method is not appropriate.  
-
-If you have better benchmark method or if you want add your benchmark result, please feel free to submit a PR.
+如果你有更好的测试方法，或者说你想添加在你机器上的测试结果，欢迎提PR。
 
 # License
 [MIT](./LICENSE)
